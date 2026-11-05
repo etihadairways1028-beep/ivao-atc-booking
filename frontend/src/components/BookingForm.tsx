@@ -39,7 +39,7 @@ export function BookingForm({ editing, onSubmit, onCancel }: Props) {
   }
 
   return (
-    <form className="booking-form" onSubmit={handleSubmit}>
+    <form className="glass card booking-form" onSubmit={handleSubmit}>
       <h2>
         {editing ? `Edit booking on ${editing.callsign}` : 'Book a position'}
       </h2>
@@ -47,6 +47,7 @@ export function BookingForm({ editing, onSubmit, onCancel }: Props) {
       <label>
         Position
         <input
+          className="mono"
           value={values.callsign}
           onChange={(e) => set('callsign')(e.target.value)}
           placeholder="LFPG_TWR"

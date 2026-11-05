@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api, ApiError, type Booking, type BookingInput } from './api'
 import { BookingForm } from './components/BookingForm'
 import { BookingsTable } from './components/BookingsTable'
+import { ThemeToggle } from './components/ThemeToggle'
 import { VidLogin } from './components/VidLogin'
 import { useVid } from './useVid'
 
@@ -82,6 +83,12 @@ export default function App() {
     }
   }
 
+  const startEditing = (booking: Booking) => {
+    setNotice('')
+    setError('')
+    setEditing(booking)
+  }
+
   const handleVidChange = (value: string) => {
     setVid(value)
     setEditing(null)
@@ -89,9 +96,20 @@ export default function App() {
 
   return (
     <>
-      <header>
-        <h1>ATC Booking</h1>
-        <VidLogin vid={vid} onChange={handleVidChange} />
+      <div className="backdrop" aria-hidden="true" />
+
+      <header className="glass topbar">
+        <div className="brand">
+          <span className="logo" aria-hidden="true" />
+          <div>
+            <h1>ATC Booking</h1>
+            <p>Reserve a position on the network</p>
+          </div>
+        </div>
+        <div className="topbar-actions">
+          <ThemeToggle />
+          <VidLogin vid={vid} onChange={handleVidChange} />
+        </div>
       </header>
 
       <main>
@@ -105,36 +123,59 @@ export default function App() {
               onCancel={() => setEditing(null)}
             />
           ) : (
-            <p className="muted">Sign in with your VID to book a position.</p>
+            <div className="glass card welcome">
+              <h2>Book a position</h2>
+              <p className="muted">
+                Sign in with your VID at the top to book, edit or delete your
+                sessions.
+              </p>
+            </div>
           )}
-          {error && <p className="alert error">{error}</p>}
-          {notice && <p className="alert success">{notice}</p>}
+          {error && (
+            <p className="alert error" role="alert">
+              {error}
+            </p>
+          )}
+          {notice && (
+            <p className="alert success" role="status">
+              {notice}
+            </p>
+          )}
         </aside>
 
-        <section>
+        <section className="glass card">
           <div className="toolbar">
-            <h2>{date ? `Bookings on ${date}` : 'Upcoming bookings'}</h2>
-            <input
-              type="date"
-              aria-label="Show bookings for a date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-            />
-            {date && (
-              <button type="button" onClick={() => setDate('')}>
-                Show upcoming
-              </button>
-            )}
+            <div>
+              <h2>{date ? `Bookings on ${date}` : 'Upcoming bookings'}</h2>
+              <p className="muted small">
+                {list && !loading
+                  ? `${list.bookings.length} booking${list.bookings.length === 1 ? '' : 's'} · times in UTC`
+                  : 'Times in UTC'}
+              </p>
+            </div>
+            <div className="toolbar-controls">
+              {date && (
+                <button type="button" onClick={() => setDate('')}>
+                  Upcoming
+                </button>
+              )}
+              <input
+                type="date"
+                aria-label="Show bookings for a date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+              />
+            </div>
           </div>
 
           {loading || !list ? (
-            <p className="muted">Loading…</p>
+            <p className="muted empty">Loading…</p>
           ) : (
             <BookingsTable
               bookings={list.bookings}
               now={list.fetchedAt}
               vid={vid}
-              onEdit={setEditing}
+              onEdit={startEditing}
               onDelete={handleDelete}
             />
           )}
