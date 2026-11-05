@@ -101,18 +101,10 @@ export default function App() {
 
   return (
     <>
-      <div className="backdrop" aria-hidden="true">
-        <span className="aurora" />
-        <span className="grain" />
-      </div>
-
-      <header className="glass topbar">
+      <header className="topbar">
         <div className="brand">
-          <span className="logo" aria-hidden="true" />
-          <div>
-            <h1>ATC Booking</h1>
-            <p>Reserve a position on the network</p>
-          </div>
+          <h1>ATC Booking</h1>
+          <span className="muted">Position scheduling</span>
         </div>
         <UtcClock />
         <div className="topbar-actions">
@@ -123,15 +115,19 @@ export default function App() {
 
       <div className="hero">
         <div>
-          <p className="eyebrow">ATC schedule</p>
-          <h2 className="hero-title">
-            {date ? `Bookings on ${date}` : 'Who’s controlling, and when.'}
+          <h2 className="page-title">
+            {date ? `Schedule for ${date}` : 'Schedule'}
           </h2>
+          <p className="muted small">
+            {date
+              ? 'All bookings overlapping this UTC day.'
+              : 'Bookings that have not ended yet.'}
+          </p>
         </div>
         <div className="toolbar-controls">
           {date && (
             <button type="button" onClick={() => setDate('')}>
-              Back to upcoming
+              Show upcoming
             </button>
           )}
           <input
@@ -156,7 +152,7 @@ export default function App() {
               onCancel={() => setEditing(null)}
             />
           ) : (
-            <div className="glass card welcome">
+            <div className="card welcome">
               <h2>Book a position</h2>
               <p className="muted">
                 Sign in with your VID at the top to book, edit or delete your
@@ -186,7 +182,7 @@ export default function App() {
             />
           )}
 
-          <section className="glass card">
+          <section className="card">
             <div className="toolbar">
               <div>
                 <h2>{date ? 'All bookings that day' : 'Upcoming bookings'}</h2>

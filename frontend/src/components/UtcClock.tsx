@@ -5,7 +5,6 @@ export function UtcClock() {
 
   return (
     <div className="clock" aria-label="Current UTC time">
-      <span className="live-dot" aria-hidden="true" />
       <time dateTime={now.toISOString()}>
         {now.toISOString().slice(11, 19)}
       </time>

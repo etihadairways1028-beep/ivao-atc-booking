@@ -39,7 +39,7 @@ export function StatsBar({ bookings, vid, date }: Props) {
 
   return (
     <div className="stats">
-      <div className="glass stat stat-live">
+      <div className="card stat stat-live">
         <span className="stat-label">
           <span className="live-dot" aria-hidden="true" /> Live now
         </span>
@@ -51,19 +51,19 @@ export function StatsBar({ bookings, vid, date }: Props) {
         </span>
       </div>
 
-      <div className="glass stat stat-bookings">
+      <div className="card stat stat-bookings">
         <span className="stat-label">{date ? 'On this day' : 'Upcoming'}</span>
         <strong>{bookings.length}</strong>
         <span className="stat-sub">{hours.toFixed(1)} h of ATC coverage</span>
       </div>
 
-      <div className="glass stat stat-positions">
+      <div className="card stat stat-positions">
         <span className="stat-label">Positions</span>
         <strong>{positions}</strong>
         <span className="stat-sub">distinct callsigns booked</span>
       </div>
 
-      <div className="glass stat stat-next">
+      <div className="card stat stat-next">
         <span className="stat-label">Your next session</span>
         {next ? (
           <>
