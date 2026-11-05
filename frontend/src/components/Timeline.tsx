@@ -46,7 +46,7 @@ export function Timeline({ bookings, vid, date, onEdit }: Props) {
       : null
 
   return (
-    <section className="card">
+    <section className="glass card">
       <div className="toolbar">
         <div>
           <h2>Timeline</h2>

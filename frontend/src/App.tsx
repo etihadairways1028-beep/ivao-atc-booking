@@ -101,7 +101,9 @@ export default function App() {
 
   return (
     <>
-      <header className="topbar">
+      <div className="backdrop" aria-hidden="true" />
+
+      <header className="topbar glass">
         <div className="brand">
           <h1>ATC Booking</h1>
           <span className="muted">Position scheduling</span>
@@ -152,7 +154,7 @@ export default function App() {
               onCancel={() => setEditing(null)}
             />
           ) : (
-            <div className="card welcome">
+            <div className="glass card welcome">
               <h2>Book a position</h2>
               <p className="muted">
                 Sign in with your VID at the top to book, edit or delete your
@@ -182,7 +184,7 @@ export default function App() {
             />
           )}
 
-          <section className="card">
+          <section className="glass card">
             <div className="toolbar">
               <div>
                 <h2>{date ? 'All bookings that day' : 'Upcoming bookings'}</h2>
