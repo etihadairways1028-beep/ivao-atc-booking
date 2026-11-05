@@ -1,5 +1,5 @@
 import type { Booking } from '../api'
-import { useNow } from '../useNow'
+import { useNow } from '../hooks/useNow'
 
 type Props = {
   bookings: Booking[]

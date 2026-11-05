@@ -12,6 +12,9 @@ const VID_HEADER = 'X-IVAO-VID'
 
 export class ApiError extends Error {}
 
+export const errorMessage = (error: unknown) =>
+  error instanceof ApiError ? error.message : 'Something went wrong, try again.'
+
 async function call<T>(
   path: string,
   init: RequestInit & { vid?: string } = {},
@@ -36,6 +39,9 @@ async function call<T>(
 export const api = {
   list: (date?: string, signal?: AbortSignal) =>
     call<Booking[]>(date ? `/bookings?date=${date}` : '/bookings', { signal }),
+
+  mine: (vid: string, signal?: AbortSignal) =>
+    call<Booking[]>('/bookings/mine', { vid, signal }),
 
   create: (vid: string, booking: BookingInput) =>
     call<Booking>('/bookings', {

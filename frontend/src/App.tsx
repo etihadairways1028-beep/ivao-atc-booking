@@ -1,59 +1,29 @@
-import { useEffect, useState } from 'react'
-import { api, ApiError, type Booking, type BookingInput } from './api'
-import { BookingForm } from './components/BookingForm'
-import { BookingsTable } from './components/BookingsTable'
-import { StatsBar } from './components/StatsBar'
+import { useState } from 'react'
+import { api, errorMessage, type Booking, type BookingInput } from './api'
+import { NavTabs } from './components/NavTabs'
 import { ThemeToggle } from './components/ThemeToggle'
-import { Timeline } from './components/Timeline'
+import { Toasts } from './components/Toasts'
 import { UtcClock } from './components/UtcClock'
 import { VidLogin } from './components/VidLogin'
-import { useVid } from './useVid'
-
-const errorMessage = (error: unknown) =>
-  error instanceof ApiError ? error.message : 'Something went wrong, try again.'
+import { useGlassPointer } from './hooks/useGlassPointer'
+import { useHashRoute } from './hooks/useHashRoute'
+import { useToasts } from './hooks/useToasts'
+import { useVid } from './hooks/useVid'
+import { MyBookingsPage } from './pages/MyBookingsPage'
+import { SchedulePage } from './pages/SchedulePage'
 
 export default function App() {
   const [vid, setVid] = useVid()
-  const [date, setDate] = useState('') // empty = upcoming bookings
-  const [refreshKey, setRefreshKey] = useState(0)
-  // Remembers which request the list belongs to, so "loading" is derived
-  // instead of being toggled by hand. `fetchedAt` is the reference time used
-  // to decide which bookings are still editable.
-  const [list, setList] = useState<{
-    key: string
-    bookings: Booking[]
-    fetchedAt: string
-  } | null>(null)
+  const [route, navigate] = useHashRoute()
+  const { toasts, push, dismiss } = useToasts()
   const [editing, setEditing] = useState<Booking | null>(null)
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
+  // Bumped after every change so both pages reload their data.
+  const [refreshKey, setRefreshKey] = useState(0)
 
-  const requestKey = `${date}|${refreshKey}`
-  const loading = list?.key !== requestKey
-
-  useEffect(() => {
-    // Aborting avoids showing a stale list when the date changes quickly.
-    const controller = new AbortController()
-
-    api
-      .list(date || undefined, controller.signal)
-      .then((bookings) =>
-        setList({
-          key: requestKey,
-          bookings,
-          fetchedAt: new Date().toISOString(),
-        }),
-      )
-      .catch((err: unknown) => {
-        if (!controller.signal.aborted) setError(errorMessage(err))
-      })
-
-    return () => controller.abort()
-  }, [date, requestKey])
+  useGlassPointer()
 
   const done = (message: string) => {
-    setError('')
-    setNotice(message)
+    push('success', message)
     setEditing(null)
     setRefreshKey((key) => key + 1)
   }
@@ -69,8 +39,7 @@ export default function App() {
       }
       return true
     } catch (err) {
-      setNotice('')
-      setError(errorMessage(err))
+      push('error', errorMessage(err))
       return false
     }
   }
@@ -81,15 +50,16 @@ export default function App() {
       await api.remove(vid, booking.id)
       done(`Booking on ${booking.callsign} deleted.`)
     } catch (err) {
-      setNotice('')
-      setError(errorMessage(err))
+      push('error', errorMessage(err))
     }
   }
 
+  // The edit form lives on the schedule page, so editing from
+  // "My bookings" takes the user there.
   const startEditing = (booking: Booking) => {
-    setNotice('')
-    setError('')
     setEditing(booking)
+    if (route !== 'schedule') navigate('schedule')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleVidChange = (value: string) => {
@@ -97,17 +67,19 @@ export default function App() {
     setEditing(null)
   }
 
-  const bookings = list && !loading ? list.bookings : null
-
   return (
     <>
-      <div className="backdrop" aria-hidden="true" />
+      <div className="backdrop" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
 
       <header className="topbar glass">
         <div className="brand">
           <h1>ATC Booking</h1>
-          <span className="muted">Position scheduling</span>
         </div>
+        <NavTabs route={route} />
         <UtcClock />
         <div className="topbar-actions">
           <ThemeToggle />
@@ -115,97 +87,26 @@ export default function App() {
         </div>
       </header>
 
-      <div className="hero">
-        <div>
-          <h2 className="page-title">
-            {date ? `Schedule for ${date}` : 'Schedule'}
-          </h2>
-          <p className="muted small">
-            {date
-              ? 'All bookings overlapping this UTC day.'
-              : 'Bookings that have not ended yet.'}
-          </p>
-        </div>
-        <div className="toolbar-controls">
-          {date && (
-            <button type="button" onClick={() => setDate('')}>
-              Show upcoming
-            </button>
-          )}
-          <input
-            type="date"
-            aria-label="Show bookings for a date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-      </div>
+      {route === 'schedule' ? (
+        <SchedulePage
+          vid={vid}
+          refreshKey={refreshKey}
+          editing={editing}
+          onEdit={startEditing}
+          onCancelEdit={() => setEditing(null)}
+          onSubmit={handleSubmit}
+          onDelete={handleDelete}
+        />
+      ) : (
+        <MyBookingsPage
+          vid={vid}
+          refreshKey={refreshKey}
+          onEdit={startEditing}
+          onDelete={handleDelete}
+        />
+      )}
 
-      <StatsBar bookings={bookings ?? []} vid={vid} date={date} />
-
-      <main>
-        <aside>
-          {vid ? (
-            <BookingForm
-              // Remount on change so the form picks up the booking's values.
-              key={editing?.id ?? 'new'}
-              editing={editing}
-              onSubmit={handleSubmit}
-              onCancel={() => setEditing(null)}
-            />
-          ) : (
-            <div className="glass card welcome">
-              <h2>Book a position</h2>
-              <p className="muted">
-                Sign in with your VID at the top to book, edit or delete your
-                sessions.
-              </p>
-            </div>
-          )}
-          {error && (
-            <p className="alert error" role="alert">
-              {error}
-            </p>
-          )}
-          {notice && (
-            <p className="alert success" role="status">
-              {notice}
-            </p>
-          )}
-        </aside>
-
-        <div className="content">
-          {bookings && (
-            <Timeline
-              bookings={bookings}
-              vid={vid}
-              date={date}
-              onEdit={startEditing}
-            />
-          )}
-
-          <section className="glass card">
-            <div className="toolbar">
-              <div>
-                <h2>{date ? 'All bookings that day' : 'Upcoming bookings'}</h2>
-                <p className="muted small">Sorted by position · times in UTC</p>
-              </div>
-            </div>
-
-            {!bookings || !list ? (
-              <p className="muted empty">Loading…</p>
-            ) : (
-              <BookingsTable
-                bookings={bookings}
-                now={list.fetchedAt}
-                vid={vid}
-                onEdit={startEditing}
-                onDelete={handleDelete}
-              />
-            )}
-          </section>
-        </div>
-      </main>
+      <Toasts toasts={toasts} onDismiss={dismiss} />
     </>
   )
 }

@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import type { Booking } from '../api'
 import { facilityClass } from '../facility'
 import { formatTime } from '../time'
-import { useNow } from '../useNow'
+import { useNow } from '../hooks/useNow'
 
 type Props = {
   bookings: Booking[]

@@ -1,4 +1,4 @@
-import { useNow } from '../useNow'
+import { useNow } from '../hooks/useNow'
 
 export function UtcClock() {
   const now = useNow(1000)

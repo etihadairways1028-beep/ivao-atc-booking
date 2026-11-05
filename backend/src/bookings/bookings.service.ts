@@ -47,6 +47,15 @@ export class BookingsService {
     });
   }
 
+  /** A user's own bookings, most recent first, past ones included. */
+  findByVid(vid: number): Promise<Booking[]> {
+    return this.bookings.find({
+      where: { vid },
+      order: { startsAt: 'DESC' },
+      take: 50,
+    });
+  }
+
   /** VID of whoever has booked the position right now, if anyone. */
   async findCurrentVid(callsign: string): Promise<number> {
     const now = new Date();

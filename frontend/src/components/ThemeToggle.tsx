@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { useTheme, type ThemePreference } from '../useTheme'
+import { useTheme, type ThemePreference } from '../hooks/useTheme'
 
 const icon = (path: ReactNode) => (
   <svg

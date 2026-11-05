@@ -30,6 +30,12 @@ export class BookingsController {
       : this.bookingsService.findUpcoming();
   }
 
+  @Get('mine')
+  @UseGuards(VidGuard)
+  mine(@Vid() vid: number): Promise<Booking[]> {
+    return this.bookingsService.findByVid(vid);
+  }
+
   // Meant for Aurora: who should be connected on this position right now?
   @Get('current/:callsign')
   async current(

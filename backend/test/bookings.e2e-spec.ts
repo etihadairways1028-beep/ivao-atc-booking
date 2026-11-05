@@ -210,6 +210,34 @@ describe('Bookings (e2e)', () => {
         .expect(400));
   });
 
+  describe('GET /bookings/mine', () => {
+    it("returns only the user's bookings, newest first, past included", async () => {
+      await book(ALICE, 'LFPG_TWR', 2, 4);
+      await book(ALICE, 'EGLL_GND', 6, 8);
+      await book(BOB, 'EDDF_APP', 2, 4);
+      await repository.save({
+        vid: 111111,
+        callsign: 'LFPG_GND',
+        startsAt: at(-30),
+        endsAt: at(-28),
+      });
+
+      const { body } = await request(app.getHttpServer())
+        .get('/api/bookings/mine')
+        .set('X-IVAO-VID', ALICE)
+        .expect(200);
+
+      expect(body.map((b: Booking) => b.callsign)).toEqual([
+        'EGLL_GND',
+        'LFPG_TWR',
+        'LFPG_GND',
+      ]);
+    });
+
+    it('requires a VID', () =>
+      request(app.getHttpServer()).get('/api/bookings/mine').expect(401));
+  });
+
   describe('GET /bookings/current/:callsign', () => {
     it('returns the VID of the controller booked right now', async () => {
       await repository.save({
