@@ -1,4 +1,5 @@
 import type { Booking } from '../api'
+import { facilityClass } from '../facility'
 import { formatDate, formatTime, isSameUtcDay } from '../time'
 
 type Props = {
@@ -36,7 +37,11 @@ export function BookingsTable({ bookings, now, vid, onEdit, onDelete }: Props) {
             return (
               <tr key={booking.id} className={editable ? 'own' : undefined}>
                 <td>
-                  <span className="callsign">{booking.callsign}</span>
+                  <span
+                    className={`callsign ${facilityClass(booking.callsign)}`}
+                  >
+                    {booking.callsign}
+                  </span>
                 </td>
                 <td>{formatDate(booking.startsAt)}</td>
                 <td>{formatTime(booking.startsAt)}</td>

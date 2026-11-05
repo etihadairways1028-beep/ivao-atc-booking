@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react'
 import { api, ApiError, type Booking, type BookingInput } from './api'
 import { BookingForm } from './components/BookingForm'
 import { BookingsTable } from './components/BookingsTable'
+import { StatsBar } from './components/StatsBar'
 import { ThemeToggle } from './components/ThemeToggle'
+import { Timeline } from './components/Timeline'
+import { UtcClock } from './components/UtcClock'
 import { VidLogin } from './components/VidLogin'
 import { useVid } from './useVid'
 
@@ -94,9 +97,14 @@ export default function App() {
     setEditing(null)
   }
 
+  const bookings = list && !loading ? list.bookings : null
+
   return (
     <>
-      <div className="backdrop" aria-hidden="true" />
+      <div className="backdrop" aria-hidden="true">
+        <span className="aurora" />
+        <span className="grain" />
+      </div>
 
       <header className="glass topbar">
         <div className="brand">
@@ -106,11 +114,36 @@ export default function App() {
             <p>Reserve a position on the network</p>
           </div>
         </div>
+        <UtcClock />
         <div className="topbar-actions">
           <ThemeToggle />
           <VidLogin vid={vid} onChange={handleVidChange} />
         </div>
       </header>
+
+      <div className="hero">
+        <div>
+          <p className="eyebrow">ATC schedule</p>
+          <h2 className="hero-title">
+            {date ? `Bookings on ${date}` : 'Who’s controlling, and when.'}
+          </h2>
+        </div>
+        <div className="toolbar-controls">
+          {date && (
+            <button type="button" onClick={() => setDate('')}>
+              Back to upcoming
+            </button>
+          )}
+          <input
+            type="date"
+            aria-label="Show bookings for a date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <StatsBar bookings={bookings ?? []} vid={vid} date={date} />
 
       <main>
         <aside>
@@ -143,43 +176,37 @@ export default function App() {
           )}
         </aside>
 
-        <section className="glass card">
-          <div className="toolbar">
-            <div>
-              <h2>{date ? `Bookings on ${date}` : 'Upcoming bookings'}</h2>
-              <p className="muted small">
-                {list && !loading
-                  ? `${list.bookings.length} booking${list.bookings.length === 1 ? '' : 's'} · times in UTC`
-                  : 'Times in UTC'}
-              </p>
-            </div>
-            <div className="toolbar-controls">
-              {date && (
-                <button type="button" onClick={() => setDate('')}>
-                  Upcoming
-                </button>
-              )}
-              <input
-                type="date"
-                aria-label="Show bookings for a date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {loading || !list ? (
-            <p className="muted empty">Loading…</p>
-          ) : (
-            <BookingsTable
-              bookings={list.bookings}
-              now={list.fetchedAt}
+        <div className="content">
+          {bookings && (
+            <Timeline
+              bookings={bookings}
               vid={vid}
+              date={date}
               onEdit={startEditing}
-              onDelete={handleDelete}
             />
           )}
-        </section>
+
+          <section className="glass card">
+            <div className="toolbar">
+              <div>
+                <h2>{date ? 'All bookings that day' : 'Upcoming bookings'}</h2>
+                <p className="muted small">Sorted by position · times in UTC</p>
+              </div>
+            </div>
+
+            {!bookings || !list ? (
+              <p className="muted empty">Loading…</p>
+            ) : (
+              <BookingsTable
+                bookings={bookings}
+                now={list.fetchedAt}
+                vid={vid}
+                onEdit={startEditing}
+                onDelete={handleDelete}
+              />
+            )}
+          </section>
+        </div>
       </main>
     </>
   )
