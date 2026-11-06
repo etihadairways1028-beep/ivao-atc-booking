@@ -60,37 +60,37 @@ export function BookingForm({
     : 0
   const endsNextDay = period && formatDate(period.endsAt) !== values.date
 
-  // Everything booked on this position that day (and the next one, for a
-  // session that crosses midnight), to warn before the server says no.
+  // Everything booked that day (and the next one, for a session that crosses
+  // midnight), to apply the server's two rules before it says no.
   const load = useCallback(
     async (signal: AbortSignal) => {
       const days = [values.date, shiftDate(values.date, 1)]
       const lists = await Promise.all(days.map((d) => api.list(d, signal)))
-      const seen = new Set<number>()
-      return lists
-        .flat()
-        .filter(
-          (b) => b.callsign === callsign && !seen.has(b.id) && seen.add(b.id),
-        )
-        .sort((a, b) => a.startsAt.localeCompare(b.startsAt))
+      const byId = new Map(lists.flat().map((b) => [b.id, b]))
+      return [...byId.values()].sort((a, b) =>
+        a.startsAt.localeCompare(b.startsAt),
+      )
     },
-    [values.date, callsign],
+    [values.date],
   )
-  const { data: positionBookings } = useApiData(
-    validCallsign && values.date
-      ? `${callsign}|${values.date}|${refreshKey}`
-      : null,
+  const { data: dayBookings } = useApiData(
+    validCallsign && values.date ? `${values.date}|${refreshKey}` : null,
     load,
   )
-  const others = (positionBookings ?? []).filter((b) => b.id !== editing?.id)
-  const sameDay = others.filter(
+  const others = (dayBookings ?? []).filter((b) => b.id !== editing?.id)
+  const onPosition = others.filter((b) => b.callsign === callsign)
+  const sameDay = onPosition.filter(
     (b) =>
       formatDate(b.startsAt) === values.date ||
       formatDate(b.endsAt) === values.date,
   )
+  const overlapping = (b: Booking) =>
+    !!period && b.startsAt < period.endsAt && b.endsAt > period.startsAt
+  // Same two rules as the API: the position is taken, or you are already
+  // booked somewhere else at that time.
   const overlap =
-    period &&
-    others.find((b) => b.startsAt < period.endsAt && b.endsAt > period.startsAt)
+    onPosition.find(overlapping) ??
+    others.find((b) => String(b.vid) === vid && overlapping(b))
 
   const pickDuration = (hours: number) => {
     const from = values.from || nextFullHourUtc()
@@ -196,14 +196,24 @@ export function BookingForm({
         </p>
       )}
 
-      {validCallsign && positionBookings && (
+      {validCallsign && dayBookings && (
         <div
           className={`availability${overlap ? ' conflict' : sameDay.length ? ' booked' : ''}`}
         >
           {overlap ? (
             <p>
-              <strong>Overlaps</strong> {formatTime(overlap.startsAt)}–
-              {formatTime(overlap.endsAt)} by VID {overlap.vid}
+              {String(overlap.vid) === vid ? (
+                <>
+                  Overlaps your <strong>{overlap.callsign}</strong>{' '}
+                  session,{' '}
+                </>
+              ) : (
+                <>
+                  <strong>{overlap.callsign}</strong> is taken by VID{' '}
+                  {overlap.vid},{' '}
+                </>
+              )}
+              {formatTime(overlap.startsAt)}–{formatTime(overlap.endsAt)}
             </p>
           ) : sameDay.length === 0 ? (
             <p>
