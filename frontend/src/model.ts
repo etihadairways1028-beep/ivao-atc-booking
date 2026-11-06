@@ -8,6 +8,10 @@ export type Booking = {
 
 export type BookingInput = Pick<Booking, 'callsign' | 'startsAt' | 'endsAt'>
 
+// Same rule as the backend DTO: ICAO code, optional sector, facility type.
+export const CALLSIGN_PATTERN =
+  /^[A-Z]{4}(_[A-Z0-9]{1,3})?_(DEL|GND|TWR|APP|DEP|CTR|FSS)$/
+
 /** An error whose message is meant for the user (from the API or the demo). */
 export class ApiError extends Error {}
 

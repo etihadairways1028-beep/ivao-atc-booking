@@ -1277,6 +1277,236 @@ input:focus {
   }
 }
 
+/* ---------- Booking form helpers ---------- */
+
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--danger);
+}
+
+input[aria-invalid='true'] {
+  border-color: color-mix(in srgb, var(--danger) 60%, transparent);
+}
+
+.chips {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.chip {
+  flex: 1;
+  padding: 0.3rem 0;
+  font-size: 0.8rem;
+  border-radius: 999px;
+}
+
+.chip[aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.session-summary {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-soft);
+}
+
+.session-summary.too-long {
+  color: var(--danger);
+}
+
+.availability {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.82rem;
+  background: var(--success-soft);
+  border: 1px solid color-mix(in srgb, var(--success) 25%, transparent);
+  border-radius: 10px;
+  animation: fade-in 0.25s ease;
+}
+
+.availability strong {
+  font-family: var(--mono);
+}
+
+.availability ul {
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.availability.booked {
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.availability.conflict {
+  color: var(--danger);
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 30%, transparent);
+}
+
+/* ---------- Filters ---------- */
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 220px;
+  color: var(--text-soft);
+}
+
+.search svg {
+  position: absolute;
+  left: 0.7rem;
+}
+
+.search input {
+  padding-left: 2.1rem;
+  padding-right: 2rem;
+}
+
+.search kbd {
+  position: absolute;
+  right: 0.6rem;
+  padding: 0 0.35rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  border: 1px solid var(--glass-line);
+  border-radius: 4px;
+}
+
+.filter-bar .chips {
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+}
+
+.filter-bar .chip {
+  flex: 0 0 auto;
+  padding: 0.3rem 0.7rem;
+}
+
+/* Facility chips carry their colour as a small dot. */
+.filter-bar .chip:not(.fac-all)::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--fac);
+}
+
+.filter-count {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.day-nav .icon-button {
+  width: 2.1rem;
+  padding: 0.45rem 0;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* ---------- Skeleton ---------- */
+
+.skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.skeleton span {
+  height: 22px;
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, transparent, var(--glass-hover), transparent) 0 0 /
+      50% 100% no-repeat,
+    var(--glass-field);
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position:
+      -100% 0,
+      0 0;
+  }
+  to {
+    background-position:
+      200% 0,
+      0 0;
+  }
+}
+
+/* ---------- Tooltip ---------- */
+
+.tooltip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 190px;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  /* Readable over the bars: nearly opaque glass. */
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border-radius: 10px;
+  transform: translate(-50%, calc(-100% - 8px));
+  pointer-events: none;
+  animation: tooltip-in 0.18s ease-out;
+}
+
+.tooltip strong {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  color: var(--fac, var(--text));
+}
+
+.tooltip-action {
+  margin-top: 0.2rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.tooltip.below {
+  transform: translate(-50%, 8px);
+  animation-name: tooltip-in-below;
+}
+
+@keyframes tooltip-in-below {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 2px) scale(0.96);
+  }
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 2px)) scale(0.96);
+  }
+}
+
 /* ---------- Dialog ---------- */
 
 .dialog {

@@ -1,7 +1,12 @@
-import type { CSSProperties } from 'react'
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type SyntheticEvent,
+} from 'react'
 import type { Booking } from '../api'
 import { facilityClass } from '../facility'
-import { formatTime } from '../time'
+import { formatDate, formatDuration, formatTime } from '../time'
 import { useNow } from '../hooks/useNow'
 
 type Props = {
@@ -22,6 +27,32 @@ const SPAN_MS = 24 * HOUR_MS
  */
 export function Timeline({ bookings, vid, date, onEdit }: Props) {
   const now = useNow(60_000)
+  const containerRef = useRef<HTMLDivElement>(null)
+  // Booking under the pointer (or keyboard focus), and where to draw its card.
+  const [hover, setHover] = useState<{
+    booking: Booking
+    x: number
+    y: number
+    below: boolean
+  } | null>(null)
+
+  const showTooltip = (booking: Booking) => (event: SyntheticEvent) => {
+    const container = containerRef.current
+    if (!container) return
+    const bar = event.currentTarget.getBoundingClientRect()
+    const box = container.getBoundingClientRect()
+    // The timeline scrolls sideways, which also clips anything above it:
+    // near the top the card goes under the bar, and it never leaves the sides.
+    const below = bar.top - box.top < 110
+    const x = bar.left + bar.width / 2 - box.left + container.scrollLeft
+    setHover({
+      booking,
+      x: Math.min(Math.max(x, 110), container.scrollWidth - 110),
+      y: below ? bar.bottom - box.top : bar.top - box.top,
+      below,
+    })
+  }
+  const hideTooltip = () => setHover(null)
 
   const windowStart = date
     ? Date.parse(`${date}T00:00:00Z`)
@@ -55,19 +86,12 @@ export function Timeline({ bookings, vid, date, onEdit }: Props) {
             bookings to edit it
           </p>
         </div>
-        <div className="legend" aria-hidden="true">
-          {['DEL', 'GND', 'TWR', 'APP', 'CTR'].map((fac) => (
-            <span key={fac} className={`legend-item fac-${fac.toLowerCase()}`}>
-              {fac}
-            </span>
-          ))}
-        </div>
       </div>
 
       {callsigns.length === 0 ? (
         <p className="muted empty">Nothing booked in this window.</p>
       ) : (
-        <div className="timeline">
+        <div className="timeline" ref={containerRef}>
           <div className="timeline-axis">
             <span />
             <div className="timeline-track">
@@ -109,8 +133,11 @@ export function Timeline({ bookings, vid, date, onEdit }: Props) {
                         type="button"
                         className={`timeline-bar ${facilityClass(callsign)}${mine ? ' mine' : ''}`}
                         style={style}
-                        title={label}
                         aria-label={label}
+                        onPointerEnter={showTooltip(booking)}
+                        onPointerLeave={hideTooltip}
+                        onFocus={showTooltip(booking)}
+                        onBlur={hideTooltip}
                         disabled={!editable}
                         onClick={() => onEdit(booking)}
                       >
@@ -121,6 +148,35 @@ export function Timeline({ bookings, vid, date, onEdit }: Props) {
               </div>
             </div>
           ))}
+
+          {hover && (
+            <div
+              className={`glass tooltip${hover.below ? ' below' : ''}`}
+              style={{ left: hover.x, top: hover.y }}
+              role="tooltip"
+            >
+              <strong className={facilityClass(hover.booking.callsign)}>
+                {hover.booking.callsign}
+              </strong>
+              <span>
+                {formatDate(hover.booking.startsAt)} ·{' '}
+                {formatTime(hover.booking.startsAt)}–
+                {formatTime(hover.booking.endsAt)}
+              </span>
+              <span className="muted">
+                {formatDuration(
+                  Date.parse(hover.booking.endsAt) -
+                    Date.parse(hover.booking.startsAt),
+                )}{' '}
+                · VID {hover.booking.vid}
+                {String(hover.booking.vid) === vid && ' (you)'}
+              </span>
+              {String(hover.booking.vid) === vid &&
+                Date.parse(hover.booking.startsAt) > now.getTime() && (
+                  <span className="tooltip-action">Click to edit</span>
+                )}
+            </div>
+          )}
 
           {nowPercent !== null && (
             <div className="timeline-now-layer" aria-hidden="true">

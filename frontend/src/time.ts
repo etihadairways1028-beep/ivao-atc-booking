@@ -24,3 +24,27 @@ export function toPeriod(date: string, from: string, to: string) {
   }
   return { startsAt: startsAt.toISOString(), endsAt: endsAt.toISOString() }
 }
+
+/** "HH:MM" shifted by whole hours, wrapping around midnight. */
+export function addHours(time: string, hours: number) {
+  const [h, m] = time.split(':').map(Number)
+  return `${String((h + hours + 24) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+/** The next full hour in UTC, as "HH:00". */
+export const nextFullHourUtc = () =>
+  `${String((new Date().getUTCHours() + 1) % 24).padStart(2, '0')}:00`
+
+/** "YYYY-MM-DD" moved by a number of days. */
+export function shiftDate(date: string, days: number) {
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * ONE_DAY_MS)
+    .toISOString()
+    .slice(0, 10)
+}
+
+export function formatDuration(ms: number) {
+  const minutes = Math.round(ms / 60_000)
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m ? `${h}h ${String(m).padStart(2, '0')}m` : `${h}h`
+}

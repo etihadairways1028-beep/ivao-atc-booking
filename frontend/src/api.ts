@@ -8,6 +8,7 @@ import {
 
 export {
   ApiError,
+  CALLSIGN_PATTERN,
   errorMessage,
   type Booking,
   type BookingInput,

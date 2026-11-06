@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { api, type Booking } from '../api'
+import { Skeleton } from '../components/Skeleton'
 import { facilityClass } from '../facility'
 import { useApiData } from '../hooks/useApiData'
 import { useNow } from '../hooks/useNow'
@@ -108,7 +109,7 @@ export function MyBookingsPage({ vid, refreshKey, onEdit, onDelete }: Props) {
           </div>
 
           {loading ? (
-            <p className="muted empty">Loading…</p>
+            <Skeleton rows={3} />
           ) : upcoming.length === 0 ? (
             <p className="muted empty">
               Nothing booked. Head to the schedule to book a position.

@@ -2,9 +2,13 @@ import { useCallback, useState } from 'react'
 import { api, type Booking, type BookingInput } from '../api'
 import { BookingForm } from '../components/BookingForm'
 import { BookingsTable } from '../components/BookingsTable'
+import { FilterBar } from '../components/FilterBar'
+import { Skeleton } from '../components/Skeleton'
 import { StatsBar } from '../components/StatsBar'
 import { Timeline } from '../components/Timeline'
+import { matchesFilter, type Facility } from '../filters'
 import { useApiData } from '../hooks/useApiData'
+import { shiftDate, todayUtc } from '../time'
 
 type Props = {
   vid: string
@@ -26,6 +30,8 @@ export function SchedulePage({
   onDelete,
 }: Props) {
   const [date, setDate] = useState('') // empty = upcoming bookings
+  const [query, setQuery] = useState('')
+  const [facility, setFacility] = useState<Facility>('ALL')
 
   const load = useCallback(
     (signal: AbortSignal) => api.list(date || undefined, signal),
@@ -37,6 +43,9 @@ export function SchedulePage({
     fetchedAt,
     loading,
   } = useApiData(`${date}|${refreshKey}`, load)
+
+  const filtered = bookings?.filter((b) => matchesFilter(b, query, facility))
+  const moveDay = (days: number) => setDate(shiftDate(date || todayUtc(), days))
 
   return (
     <div className="page">
@@ -51,18 +60,34 @@ export function SchedulePage({
               : 'Bookings that have not ended yet.'}
           </p>
         </div>
-        <div className="toolbar-controls">
-          {date && (
-            <button type="button" onClick={() => setDate('')}>
-              Show upcoming
-            </button>
-          )}
+        <div className="toolbar-controls day-nav">
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Previous day"
+            onClick={() => moveDay(-1)}
+          >
+            ‹
+          </button>
           <input
             type="date"
             aria-label="Show bookings for a date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
           />
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="Next day"
+            onClick={() => moveDay(1)}
+          >
+            ›
+          </button>
+          {date && (
+            <button type="button" onClick={() => setDate('')}>
+              Upcoming
+            </button>
+          )}
         </div>
       </div>
 
@@ -74,7 +99,12 @@ export function SchedulePage({
             <BookingForm
               // Remount on change so the form picks up the booking's values.
               key={editing?.id ?? 'new'}
+              vid={vid}
               editing={editing}
+              refreshKey={refreshKey}
+              knownCallsigns={[
+                ...new Set((bookings ?? []).map((b) => b.callsign)),
+              ]}
               onSubmit={onSubmit}
               onCancel={onCancelEdit}
             />
@@ -92,13 +122,26 @@ export function SchedulePage({
         <div className="content">
           {error && <p className="alert error">{error}</p>}
 
-          {bookings && !loading && (
+          <FilterBar
+            query={query}
+            facility={facility}
+            shown={filtered?.length ?? 0}
+            total={bookings?.length ?? 0}
+            onQueryChange={setQuery}
+            onFacilityChange={setFacility}
+          />
+
+          {filtered && !loading ? (
             <Timeline
-              bookings={bookings}
+              bookings={filtered}
               vid={vid}
               date={date}
               onEdit={onEdit}
             />
+          ) : (
+            <section className="glass card">
+              <Skeleton rows={7} />
+            </section>
           )}
 
           <section className="glass card">
@@ -109,11 +152,11 @@ export function SchedulePage({
               </div>
             </div>
 
-            {loading || !bookings ? (
-              <p className="muted empty">Loading…</p>
+            {loading || !filtered ? (
+              <Skeleton rows={6} />
             ) : (
               <BookingsTable
-                bookings={bookings}
+                bookings={filtered}
                 now={fetchedAt}
                 vid={vid}
                 onEdit={onEdit}
