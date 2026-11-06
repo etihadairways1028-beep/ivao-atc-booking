@@ -8,6 +8,7 @@ export const CALLSIGN_PATTERN =
 
 // Used for both creation and edition: an edit always sends the full booking.
 export class SaveBookingDto {
+  /** Position callsign, e.g. LFPG_TWR. Case-insensitive. */
   @IsString()
   @Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.trim().toUpperCase() : value,
@@ -17,10 +18,12 @@ export class SaveBookingDto {
   })
   callsign: string;
 
+  /** Start of the session (ISO 8601, UTC). Must be in the future. */
   @Type(() => Date)
   @IsDate()
   startsAt: Date;
 
+  /** End of the session (ISO 8601, UTC). At most 12 hours after the start. */
   @Type(() => Date)
   @IsDate()
   endsAt: Date;

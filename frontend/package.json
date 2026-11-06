@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "build:demo": "VITE_DEMO=true vite build --base=./ --outDir dist-demo"
+    "build:demo": "VITE_DEMO=true vite build --base=./ --outDir dist-demo",
+    "test": "vitest run"
   },
   "dependencies": {
     "react": "^19.3.1",
@@ -19,8 +20,10 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "jsdom": "^31.0.0",
     "oxlint": "^1.90.0",
     "typescript": "~7.0.2",
-    "vite": "^8.3.6"
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   }
 }
