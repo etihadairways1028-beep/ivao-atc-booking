@@ -1,10 +1,18 @@
 import { useState } from 'react'
-import { api, errorMessage, type Booking, type BookingInput } from './api'
+import {
+  api,
+  errorMessage,
+  IS_DEMO,
+  type Booking,
+  type BookingInput,
+} from './api'
+import { resetDemo } from './demoApi'
 import { NavTabs } from './components/NavTabs'
 import { ThemeToggle } from './components/ThemeToggle'
 import { Toasts } from './components/Toasts'
 import { UtcClock } from './components/UtcClock'
 import { VidLogin } from './components/VidLogin'
+import { useConfirm } from './hooks/useConfirm'
 import { useGlassPointer } from './hooks/useGlassPointer'
 import { useHashRoute } from './hooks/useHashRoute'
 import { useToasts } from './hooks/useToasts'
@@ -19,6 +27,7 @@ export default function App() {
   const [editing, setEditing] = useState<Booking | null>(null)
   // Bumped after every change so both pages reload their data.
   const [refreshKey, setRefreshKey] = useState(0)
+  const [confirm, confirmDialog] = useConfirm()
 
   useGlassPointer()
 
@@ -45,7 +54,12 @@ export default function App() {
   }
 
   const handleDelete = async (booking: Booking) => {
-    if (!confirm(`Delete your booking on ${booking.callsign}?`)) return
+    const ok = await confirm(
+      'Delete this booking?',
+      `Your session on ${booking.callsign} will be removed from the schedule.`,
+      'Delete',
+    )
+    if (!ok) return
     try {
       await api.remove(vid, booking.id)
       done(`Booking on ${booking.callsign} deleted.`)
@@ -60,6 +74,11 @@ export default function App() {
     setEditing(booking)
     if (route !== 'schedule') navigate('schedule')
     window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleResetDemo = () => {
+    resetDemo()
+    done('Demo data reset.')
   }
 
   const handleVidChange = (value: string) => {
@@ -78,6 +97,16 @@ export default function App() {
       <header className="topbar glass">
         <div className="brand">
           <h1>ATC Booking</h1>
+          {IS_DEMO && (
+            <button
+              type="button"
+              className="demo-badge"
+              title="This demo runs in your browser. Click to reset its data."
+              onClick={handleResetDemo}
+            >
+              Demo · reset
+            </button>
+          )}
         </div>
         <NavTabs route={route} />
         <UtcClock />
@@ -107,6 +136,7 @@ export default function App() {
       )}
 
       <Toasts toasts={toasts} onDismiss={dismiss} />
+      {confirmDialog}
     </>
   )
 }

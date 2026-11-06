@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { readStorage, writeStorage } from '../storage'
 
 export type ThemePreference = 'light' | 'dark' | 'system'
 
@@ -6,7 +7,7 @@ const STORAGE_KEY = 'theme'
 const darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
 
 const readPreference = (): ThemePreference => {
-  const stored = localStorage.getItem(STORAGE_KEY)
+  const stored = readStorage(STORAGE_KEY)
   return stored === 'light' || stored === 'dark' ? stored : 'system'
 }
 
@@ -23,8 +24,7 @@ export function useTheme() {
     }
 
     apply()
-    if (preference === 'system') localStorage.removeItem(STORAGE_KEY)
-    else localStorage.setItem(STORAGE_KEY, preference)
+    writeStorage(STORAGE_KEY, preference === 'system' ? null : preference)
 
     darkQuery.addEventListener('change', apply)
     return () => darkQuery.removeEventListener('change', apply)

@@ -1,19 +1,19 @@
-export type Booking = {
-  id: number
-  vid: number
-  callsign: string
-  startsAt: string
-  endsAt: string
-}
+import { demoApi } from './demoApi'
+import {
+  ApiError,
+  type ApiClient,
+  type Booking,
+  type BookingInput,
+} from './model'
 
-export type BookingInput = Pick<Booking, 'callsign' | 'startsAt' | 'endsAt'>
+export {
+  ApiError,
+  errorMessage,
+  type Booking,
+  type BookingInput,
+} from './model'
 
 const VID_HEADER = 'X-IVAO-VID'
-
-export class ApiError extends Error {}
-
-export const errorMessage = (error: unknown) =>
-  error instanceof ApiError ? error.message : 'Something went wrong, try again.'
 
 async function call<T>(
   path: string,
@@ -36,7 +36,7 @@ async function call<T>(
   return response.status === 204 ? (undefined as T) : response.json()
 }
 
-export const api = {
+const httpApi: ApiClient = {
   list: (date?: string, signal?: AbortSignal) =>
     call<Booking[]>(date ? `/bookings?date=${date}` : '/bookings', { signal }),
 
@@ -60,3 +60,12 @@ export const api = {
   remove: (vid: string, id: number) =>
     call<void>(`/bookings/${id}`, { method: 'DELETE', vid }),
 }
+
+/**
+ * The demo build (npm run build:demo) has no server: it swaps in an
+ * in-browser implementation with the same rules, so the site can be hosted
+ * as static files.
+ */
+export const IS_DEMO = import.meta.env.VITE_DEMO === 'true'
+
+export const api: ApiClient = IS_DEMO ? demoApi : httpApi

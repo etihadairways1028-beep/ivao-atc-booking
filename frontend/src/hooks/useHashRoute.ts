@@ -4,15 +4,16 @@ import { flushSync } from 'react-dom'
 export type Route = 'schedule' | 'mine'
 
 export const ROUTE_HASH: Record<Route, string> = {
-  schedule: '#/',
-  mine: '#/mine',
+  schedule: '#schedule',
+  mine: '#my-bookings',
 }
 
 const currentRoute = (): Route =>
   window.location.hash === ROUTE_HASH.mine ? 'mine' : 'schedule'
 
 /**
- * Two pages don't need a router library: the route lives in the URL hash,
+ * Plain #names (no #/paths) so links also survive hosts that only pass
+ * simple fragments. Two pages don't need a router library: the route lives in the URL hash,
  * so links, reloads and the back button all work. Page changes go through
  * the View Transitions API when the browser supports it, which animates
  * between the old and new page (see index.css).
