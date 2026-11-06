@@ -5,6 +5,8 @@ A web app to book ATC positions: a simplified version of the IVAO ATC scheduling
 - `backend/`: NestJS API, TypeORM with SQLite
 - `frontend/`: React + TypeScript (Vite)
 
+**Live demo: https://etihadairways1028-beep.github.io/ivao-atc-booking/**. This is the static demo build (see [Static demo](#static-demo)), served from the `gh-pages` branch. It runs entirely in your browser, so try any VID, for example `512034`.
+
 ![Schedule, dark theme](docs/screenshots/schedule-dark.jpg)
 
 ## Quick start
@@ -33,7 +35,7 @@ There is nothing to set up. The backend uses SQLite through `better-sqlite3` and
 
 ### Static demo
 
-`npm run build:demo` in `frontend/` builds a version with no server: an in-browser implementation of the API with the same rules and messages (`src/demoApi.ts`) keeps data in `localStorage`. It is meant for showing the UI without running anything. The NestJS backend remains the reference, and it is the one under test.
+`npm run build:demo` in `frontend/` builds a version with no server: an in-browser implementation of the API with the same rules and messages (`src/demoApi.ts`) keeps data in `localStorage`. It is meant for showing the UI without running anything. The NestJS backend remains the reference, and it is the one under test. The `gh-pages` branch holds that build and is what GitHub Pages serves.
 
 ## Features
 
