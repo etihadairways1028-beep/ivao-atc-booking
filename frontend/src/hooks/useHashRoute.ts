@@ -1,15 +1,18 @@
 import { useEffect, useState } from 'react'
 import { flushSync } from 'react-dom'
 
-export type Route = 'schedule' | 'mine'
+export type Route = 'schedule' | 'positions' | 'mine'
 
 export const ROUTE_HASH: Record<Route, string> = {
   schedule: '#schedule',
+  positions: '#positions',
   mine: '#my-bookings',
 }
 
 const currentRoute = (): Route =>
-  window.location.hash === ROUTE_HASH.mine ? 'mine' : 'schedule'
+  (Object.keys(ROUTE_HASH) as Route[]).find(
+    (route) => ROUTE_HASH[route] === window.location.hash,
+  ) ?? 'schedule'
 
 /**
  * Plain #names (no #/paths) so links also survive hosts that only pass

@@ -1,5 +1,10 @@
 import { useCallback } from 'react'
 import { api, type Booking } from '../api'
+import {
+  HoursByPosition,
+  NextUpCard,
+  WeekStrip,
+} from '../components/MyOverview'
 import { Skeleton } from '../components/Skeleton'
 import { facilityClass } from '../facility'
 import { useApiData } from '../hooks/useApiData'
@@ -103,17 +108,31 @@ export function MyBookingsPage({ vid, refreshKey, onEdit, onDelete }: Props) {
       <div className="stack">
         {error && <p className="alert error">{error}</p>}
 
+        {!loading && (
+          <div className="overview">
+            <NextUpCard booking={upcoming[0]} now={now} onEdit={onEdit} />
+            <WeekStrip bookings={upcoming} />
+          </div>
+        )}
+
         <section className="glass card">
           <div className="toolbar">
-            <h2>Upcoming</h2>
+            <h2>All upcoming</h2>
           </div>
 
           {loading ? (
             <Skeleton rows={3} />
           ) : upcoming.length === 0 ? (
-            <p className="muted empty">
-              Nothing booked. Head to the schedule to book a position.
-            </p>
+            <div className="empty-guide">
+              <p>You have nothing booked yet.</p>
+              <ol className="steps">
+                <li>
+                  Open <a href="#positions">Positions</a> to see what is free.
+                </li>
+                <li>Press “Book” on a position, pick a slot in UTC.</li>
+                <li>Your sessions show up here, with a countdown.</li>
+              </ol>
+            </div>
           ) : (
             <div className="session-grid">
               {upcoming.map((booking) => {
@@ -168,39 +187,49 @@ export function MyBookingsPage({ vid, refreshKey, onEdit, onDelete }: Props) {
           )}
         </section>
 
-        {past.length > 0 && (
-          <section className="glass card">
-            <div className="toolbar">
-              <h2>History</h2>
-            </div>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Position</th>
-                    <th>Date</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Duration</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {past.map((booking) => (
-                    <tr key={booking.id}>
-                      <td>
-                        <span className="callsign">{booking.callsign}</span>
-                      </td>
-                      <td>{formatDate(booking.startsAt)}</td>
-                      <td>{formatTime(booking.startsAt)}</td>
-                      <td>{formatTime(booking.endsAt)}</td>
-                      <td>{durationOf(booking).toFixed(1)} h</td>
+        <div className="split">
+          {past.length > 0 ? (
+            <section className="glass card">
+              <div className="toolbar">
+                <h2>History</h2>
+              </div>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Position</th>
+                      <th>Date</th>
+                      <th>From</th>
+                      <th>To</th>
+                      <th>Duration</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
+                  </thead>
+                  <tbody>
+                    {past.map((booking) => (
+                      <tr key={booking.id}>
+                        <td>
+                          <span className="callsign">{booking.callsign}</span>
+                        </td>
+                        <td>{formatDate(booking.startsAt)}</td>
+                        <td>{formatTime(booking.startsAt)}</td>
+                        <td>{formatTime(booking.endsAt)}</td>
+                        <td>{durationOf(booking).toFixed(1)} h</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : (
+            <section className="glass card">
+              <div className="toolbar">
+                <h2>History</h2>
+              </div>
+              <p className="muted empty">Finished sessions are listed here.</p>
+            </section>
+          )}
+          <HoursByPosition bookings={bookings} />
+        </div>
       </div>
     </div>
   )

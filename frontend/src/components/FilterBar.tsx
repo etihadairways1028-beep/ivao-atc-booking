@@ -6,6 +6,8 @@ type Props = {
   facility: Facility
   shown: number
   total: number
+  // What is being counted: "bookings" or "positions".
+  noun?: string
   onQueryChange: (query: string) => void
   onFacilityChange: (facility: Facility) => void
 }
@@ -15,6 +17,7 @@ export function FilterBar({
   facility,
   shown,
   total,
+  noun = 'bookings',
   onQueryChange,
   onFacilityChange,
 }: Props) {
@@ -78,7 +81,7 @@ export function FilterBar({
       </div>
 
       <span className="muted small filter-count">
-        {shown === total ? `${total} bookings` : `${shown} of ${total}`}
+        {shown === total ? `${total} ${noun}` : `${shown} of ${total} ${noun}`}
       </span>
     </div>
   )

@@ -49,10 +49,15 @@ There is nothing to set up. The backend uses SQLite through `better-sqlite3` and
 - Before you submit, the form shows what's already booked on that position that day, and warns when your times would overlap someone else's booking or one of your own. The server still makes the final call.
 - Edit and delete your own bookings before they start, with an in-page confirmation for deletes.
 
+**Positions**
+- Every position on the schedule, grouped by airport or FIR: who is controlling it now and until when, who is next, and its coverage over the next 24 hours.
+- Totals for staffed and free positions, the next one to open and the busiest field. "Book" opens the form with that position filled in.
+
 **My bookings**
-- Your upcoming sessions with a live badge or a countdown, your history, and totals.
+- Your next session up front (with a countdown, or a progress bar while you're on position), your week at a glance, every upcoming session, your history, and your hours per position.
 
 **Everywhere**
+- A footer with the booking rules and your offset from UTC.
 - Light, dark or system theme. Animated page changes, notifications, a responsive layout, and keyboard-accessible controls. Motion is turned off for users who ask their system for reduced motion.
 
 <p>
@@ -61,6 +66,8 @@ There is nothing to set up. The backend uses SQLite through `better-sqlite3` and
 </p>
 
 ![Schedule, light theme, with a timeline tooltip](docs/screenshots/schedule-light.jpg)
+
+![Positions page](docs/screenshots/positions.jpg)
 
 ## API
 
@@ -97,7 +104,7 @@ backend/src/
 backend/test/    e2e tests against an in-memory database
 
 frontend/src/
-  pages/         Schedule and My bookings
+  pages/         Schedule, Positions and My bookings
   components/    form, timeline, table, filters, dialogs, toasts...
   hooks/         data loading, routing, theme, toasts, confirm dialog...
   api.ts         HTTP client (or the in-browser demo API in demo builds)
@@ -110,7 +117,7 @@ frontend/src/
 - **Concurrency**: the conflict check and the write happen in one transaction, and SQLite runs write transactions one at a time. So two simultaneous requests can't both get the same slot (there's a test for this). With Postgres I would add an exclusion constraint on `(callsign, tstzrange)` as a database-level guarantee.
 - **Performance**: there are indexes on `(callsign, startsAt)` and `(vid, startsAt)`, which the overlap and listing queries use. The schedule's timeline, table and stats all come from one list request.
 - **Data loading**: one small `useApiData` hook loads data per request key and aborts outdated requests, so a slow response never overwrites a newer one. Loading states are derived from that key rather than toggled by hand.
-- **Routing**: two pages don't need a router library. The page lives in the URL hash (`#schedule`, `#my-bookings`), so reloads and the back button work. Page changes go through the View Transitions API where the browser has it.
-- **Styling**: there's no CSS library, just one stylesheet built on CSS variables, with a theme for light and one for dark. The theme is applied before React loads, so the page never flashes the wrong one. The frosted-glass panels use backdrop blur and a light edge. One page-level pointer listener drives the highlight that follows the cursor.
+- **Routing**: two pages don't need a router library. The page lives in the URL hash (`#schedule`, `#positions`, `#my-bookings`), so reloads and the back button work. Page changes go through the View Transitions API where the browser has it.
+- **Styling**: there's no CSS library, just one stylesheet built on CSS variables, with a theme for light and one for dark. The theme is applied before React loads, so the page never flashes the wrong one. The frosted-glass panels use backdrop blur and a light edge. (The CSS minifier collapses `backdrop-filter` and `-webkit-backdrop-filter` into the prefixed one only, which Chrome ignores, so the source only writes the standard property and lets the build add the prefix.) One page-level pointer listener drives the highlight that follows the cursor.
 - **Frontend tooling**: Create React App has been deprecated since 2025 and no longer installs cleanly with current React. I used Vite, which is just the dev server and bundler; the app itself is plain React with no framework on top. In development, Vite proxies `/api` to the backend, so no CORS setup is needed.
 - `synchronize: true` is fine for an exercise. A real deployment would use migrations.

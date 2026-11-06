@@ -14,6 +14,8 @@ type Props = {
   vid: string
   refreshKey: number
   editing: Booking | null
+  // Position to start the form with (from the Positions page).
+  prefill: string
   onEdit: (booking: Booking) => void
   onCancelEdit: () => void
   onSubmit: (input: BookingInput) => Promise<boolean>
@@ -24,6 +26,7 @@ export function SchedulePage({
   vid,
   refreshKey,
   editing,
+  prefill,
   onEdit,
   onCancelEdit,
   onSubmit,
@@ -98,9 +101,10 @@ export function SchedulePage({
           {vid ? (
             <BookingForm
               // Remount on change so the form picks up the booking's values.
-              key={editing?.id ?? 'new'}
+              key={editing?.id ?? `new-${prefill}`}
               vid={vid}
               editing={editing}
+              initialCallsign={prefill}
               refreshKey={refreshKey}
               knownCallsigns={[
                 ...new Set((bookings ?? []).map((b) => b.callsign)),
@@ -115,6 +119,13 @@ export function SchedulePage({
                 Sign in with your VID at the top to book, edit or delete your
                 sessions.
               </p>
+              <ol className="steps">
+                <li>Enter your VID and sign in.</li>
+                <li>Pick a position and a time slot, in UTC.</li>
+                <li>
+                  Book it. The form warns you about clashes before you submit.
+                </li>
+              </ol>
             </div>
           )}
         </aside>

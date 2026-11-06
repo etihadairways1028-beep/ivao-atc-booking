@@ -3,6 +3,7 @@ import { ROUTE_HASH, type Route } from '../hooks/useHashRoute'
 
 const TABS: { route: Route; label: string }[] = [
   { route: 'schedule', label: 'Schedule' },
+  { route: 'positions', label: 'Positions' },
   { route: 'mine', label: 'My bookings' },
 ]
 
@@ -11,7 +12,10 @@ export function NavTabs({ route }: { route: Route }) {
 
   return (
     // --active drives the sliding indicator behind the current tab.
-    <nav className="tabs" style={{ '--active': active } as CSSProperties}>
+    <nav
+      className="tabs"
+      style={{ '--active': active, '--count': TABS.length } as CSSProperties}
+    >
       {TABS.map((tab) => (
         <a
           key={tab.route}

@@ -20,6 +20,8 @@ type Props = {
   refreshKey: number
   // Positions seen on the schedule, offered as suggestions.
   knownCallsigns: string[]
+  // Pre-filled position, e.g. from "Book" on the Positions page.
+  initialCallsign?: string
   // Resolves to false when the booking was refused, so the inputs are kept.
   onSubmit: (booking: BookingInput) => Promise<boolean>
   onCancel: () => void
@@ -28,8 +30,8 @@ type Props = {
 const QUICK_DURATIONS = [1, 2, 3, 4]
 const MAX_HOURS = 12
 
-const initialValues = (booking: Booking | null) => ({
-  callsign: booking?.callsign ?? '',
+const initialValues = (booking: Booking | null, callsign = '') => ({
+  callsign: booking?.callsign ?? callsign,
   date: booking ? formatDate(booking.startsAt) : todayUtc(),
   from: booking?.startsAt.slice(11, 16) ?? '',
   to: booking?.endsAt.slice(11, 16) ?? '',
@@ -40,10 +42,13 @@ export function BookingForm({
   editing,
   refreshKey,
   knownCallsigns,
+  initialCallsign,
   onSubmit,
   onCancel,
 }: Props) {
-  const [values, setValues] = useState(() => initialValues(editing))
+  const [values, setValues] = useState(() =>
+    initialValues(editing, initialCallsign),
+  )
   const [submitting, setSubmitting] = useState(false)
 
   const set = (field: keyof typeof values) => (value: string) =>

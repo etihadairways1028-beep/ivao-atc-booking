@@ -18,6 +18,8 @@ import { useHashRoute } from './hooks/useHashRoute'
 import { useToasts } from './hooks/useToasts'
 import { useVid } from './hooks/useVid'
 import { MyBookingsPage } from './pages/MyBookingsPage'
+import { PositionsPage } from './pages/PositionsPage'
+import { Footer } from './components/Footer'
 import { SchedulePage } from './pages/SchedulePage'
 
 export default function App() {
@@ -25,6 +27,7 @@ export default function App() {
   const [route, navigate] = useHashRoute()
   const { toasts, push, dismiss } = useToasts()
   const [editing, setEditing] = useState<Booking | null>(null)
+  const [prefill, setPrefill] = useState('')
   // Bumped after every change so both pages reload their data.
   const [refreshKey, setRefreshKey] = useState(0)
   const [confirm, confirmDialog] = useConfirm()
@@ -34,6 +37,7 @@ export default function App() {
   const done = (message: string) => {
     push('success', message)
     setEditing(null)
+    setPrefill('')
     setRefreshKey((key) => key + 1)
   }
 
@@ -73,6 +77,14 @@ export default function App() {
   const startEditing = (booking: Booking) => {
     setEditing(booking)
     if (route !== 'schedule') navigate('schedule')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // "Book" on the Positions page: open the schedule's form on that position.
+  const startBooking = (callsign: string) => {
+    setEditing(null)
+    setPrefill(callsign)
+    navigate('schedule')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -116,17 +128,26 @@ export default function App() {
         </div>
       </header>
 
-      {route === 'schedule' ? (
+      {route === 'schedule' && (
         <SchedulePage
           vid={vid}
           refreshKey={refreshKey}
           editing={editing}
+          prefill={prefill}
           onEdit={startEditing}
           onCancelEdit={() => setEditing(null)}
           onSubmit={handleSubmit}
           onDelete={handleDelete}
         />
-      ) : (
+      )}
+      {route === 'positions' && (
+        <PositionsPage
+          vid={vid}
+          refreshKey={refreshKey}
+          onBook={startBooking}
+        />
+      )}
+      {route === 'mine' && (
         <MyBookingsPage
           vid={vid}
           refreshKey={refreshKey}
@@ -134,6 +155,8 @@ export default function App() {
           onDelete={handleDelete}
         />
       )}
+
+      <Footer />
 
       <Toasts toasts={toasts} onDismiss={dismiss} />
       {confirmDialog}
